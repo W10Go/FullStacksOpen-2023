@@ -1,7 +1,7 @@
 import { useState } from 'react'
 // Step1: add a button that shows a random anecdote ✔
 // Step2: display votes ✔
-// Step3: display the anecdote with the largest number of votes ❌
+// Step3: display the anecdote with the largest number of votes ✔
 
 const App = () => {
   const anecdotes = [
