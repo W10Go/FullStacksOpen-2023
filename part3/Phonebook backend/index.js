@@ -25,7 +25,7 @@ morgan.token('data', (req, res) => {
 })
 
 app.use(morgan('tiny'))
-
+app.use(express.static('dist'))
 
 
 let persons = [
