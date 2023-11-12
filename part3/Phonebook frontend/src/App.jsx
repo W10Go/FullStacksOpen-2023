@@ -6,6 +6,8 @@ import personService from './services/person'
 import Notification from './components/Notification'
 
 // Step9  Make the backend works with the frontend ✔
+// Step10 Deploy the backend to the internet ✔ https://phonebook-5wy6.onrender.com/
+// Step11 Add a production build to the internet aplication ✔
 
 function App() {
   const [persons, setPersons] = useState([])
