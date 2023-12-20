@@ -5,6 +5,28 @@ const morgan = require('morgan')
 const app = express()
 const Person = require('./models/person')
 
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint'})
+}
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError'){
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
 app.use(cors())
 // Step1    Returns a hardcoded list from http://localhost:3001/api/persons ✔
 // Step2    Implement a page that displays the number of people at the address http://localhost:3001/info✔
@@ -15,12 +37,16 @@ app.use(cors())
 // Step6    Handle new entrys:
 //            °The name or number is missing ✔
 //            °The name already existis in the phonebook✔
+// Step7    Add the morgan middleware to your aplication for logging ✔
+//          Configure it to log messages to your console based on the tiny configuration.✔
+// Step8    Configure morgan so that it also shows the data sent in HTTP POST request✔
 // Phonebook database
-// Step1
-
-app.use(express.json())
-
-
+// Step1    Change the fetching of all phonebook entries so that the data is fetched from the database ✔
+// Step2    Change the backend so that new numbers are saved to the database✔
+// Step3    Change the backend so that deleting phonebook entries is reflected in the database✔
+// Step4    Move the error handling of the aplication to a new error handler middleware.
+// Step5    If the user tries to create a new phonebook entry for a person whose name is already, update the phone number by making an HTTP PUT request
+// Step6    Update the handling of the api/persons/:id to use the database. Must work with the browser, postman or VSCodeRest Client.
 
 morgan.token('data', (req, res) => {
   const body = JSON.stringify(req.body)
@@ -29,6 +55,8 @@ morgan.token('data', (req, res) => {
 
 app.use(morgan('tiny'))
 app.use(express.static('dist'))
+app.use(express.json())
+app.use(requestLogger)
 
 
 let persons = [
@@ -59,6 +87,7 @@ app.get('/', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
+    
     const date = new Date();
     response.send(`
     <p>Phonebook has info for ${persons.length} people <br/>${date}</p>
@@ -67,34 +96,28 @@ app.get('/info', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
   //
-  Person.find({}).then(persons => {
-    response.json(persons)
+  Person.find({})
+    .then(persons => {
+      response.json(persons)
   })
 })
 
-
-app.get('/api/persons/:id', (request, response) =>{
-
-    Person.findById(request.params.id).then(person => {
-      response.json(person)
-    })
+app.get('/api/persons/:id', (request, response, next) =>{
+    Person.findById(request.params.id)
+      .then(person => {
+        if (person) {
+          response.json(person)
+        } else {
+          response.status(404).end()
+        }
+      })
+      .catch(error => next(error))
 })
-
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
-  })
-
-const generateId = () => {
-    return Math.floor(Math.random()*10000)
-}
 
 app.post('/api/persons', morgan(':method :url :status :res[content-length] - :response-time ms :data'), (request, response) =>{
   const body = request.body
   if (body.name === undefined) {
-    return response.status(400).json({error: 'content missing'})
+    return response.status(400).json({error: 'name missing'})
   }
 
   const person = new Person({
@@ -107,6 +130,39 @@ app.post('/api/persons', morgan(':method :url :status :res[content-length] - :re
       response.json(savedPerson)
     })
 })
+
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+  })
+
+app.put('/api/notes/:id', (request, response, next) =>{
+  const body = request.body
+
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+const generateId = () => {
+    return Math.floor(Math.random()*10000)
+}
+
+
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
+
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {

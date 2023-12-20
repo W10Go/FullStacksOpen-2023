@@ -139,8 +139,6 @@ function App() {
       </div>
     </div>
   )
-}
+} 
 
 export default App
-
-// Dan Abramov 12-43-234345
