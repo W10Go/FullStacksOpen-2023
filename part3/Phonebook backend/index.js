@@ -44,8 +44,8 @@ app.use(cors())
 // Step1    Change the fetching of all phonebook entries so that the data is fetched from the database ✔
 // Step2    Change the backend so that new numbers are saved to the database✔
 // Step3    Change the backend so that deleting phonebook entries is reflected in the database✔
-// Step4    Move the error handling of the aplication to a new error handler middleware.
-// Step5    If the user tries to create a new phonebook entry for a person whose name is already, update the phone number by making an HTTP PUT request
+// Step4    Move the error handling of the aplication to a new error handler middleware.✔
+// Step5    If the user tries to create a new phonebook entry for a person whose name is already, update the phone number by making an HTTP PUT request✔
 // Step6    Update the handling of the api/persons/:id to use the database. Must work with the browser, postman or VSCodeRest Client.
 
 morgan.token('data', (req, res) => {
@@ -139,7 +139,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
       .catch(error => next(error))
   })
 
-app.put('/api/notes/:id', (request, response, next) =>{
+app.put('/api/persons/:id', (request, response, next) =>{
   const body = request.body
 
   const person = {
@@ -157,8 +157,6 @@ app.put('/api/notes/:id', (request, response, next) =>{
 const generateId = () => {
     return Math.floor(Math.random()*10000)
 }
-
-
 
 app.use(unknownEndpoint)
 app.use(errorHandler)
