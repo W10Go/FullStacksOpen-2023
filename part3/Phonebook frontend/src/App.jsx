@@ -86,7 +86,6 @@ function App() {
       }
     }
     else { // If can add a new person then turns the fields with empty spaces
-      
       personService
         .create(nameObject)
         .then(returnedPerson => {
@@ -98,6 +97,14 @@ function App() {
           setNewNumber('')
           setMessage(`Added ${nameObject.name}`)
           setMessageType(false)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          console.log(error.response.data.error)
+          setMessageType(true)
+          setMessage('The name must contain at least 3 characters')
           setTimeout(() => {
             setMessage(null)
           }, 5000)

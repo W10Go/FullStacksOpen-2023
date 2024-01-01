@@ -22,6 +22,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError'){
     return response.status(400).send({ error: 'malformatted id' })
+  } else if(error.name === 'ValidationError'){
+    return response.status(400).json({error: error.message})
   }
 
   next(error)
@@ -46,7 +48,13 @@ app.use(cors())
 // Step3    Change the backend so that deleting phonebook entries is reflected in the database✔
 // Step4    Move the error handling of the aplication to a new error handler middleware.✔
 // Step5    If the user tries to create a new phonebook entry for a person whose name is already, update the phone number by making an HTTP PUT request✔
-// Step6    Update the handling of the api/persons/:id to use the database. Must work with the browser, postman or VSCodeRest Client.
+// Step6    Update the handling of the api/persons/:id to use the database. Must work with the browser, postman or VSCodeRest Client.✔
+// Step7    Expand the validation so that the name stored in the database has to be at least three characters long. Make that the front end displays that✔
+// Step8    Add validations to application, For numbers:
+//            °Have length of 8 or more✔
+//            °be formed of two parts that are separated by "-", the first part has two or three numbers and the second part also consists of numbers✔
+// Step9    Deploy the database backend to production✔
+
 
 morgan.token('data', (req, res) => {
   const body = JSON.stringify(req.body)
@@ -114,7 +122,7 @@ app.get('/api/persons/:id', (request, response, next) =>{
       .catch(error => next(error))
 })
 
-app.post('/api/persons', morgan(':method :url :status :res[content-length] - :response-time ms :data'), (request, response) =>{
+app.post('/api/persons', morgan(':method :url :status :res[content-length] - :response-time ms :data'), (request, response, next) =>{
   const body = request.body
   if (body.name === undefined) {
     return response.status(400).json({error: 'name missing'})
@@ -129,6 +137,7 @@ app.post('/api/persons', morgan(':method :url :status :res[content-length] - :re
     .then(savedPerson =>{
       response.json(savedPerson)
     })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -140,23 +149,18 @@ app.delete('/api/persons/:id', (request, response, next) => {
   })
 
 app.put('/api/persons/:id', (request, response, next) =>{
-  const body = request.body
+  const {bname, bnumber} = request.body
 
-  const person = {
-    name: body.name,
-    number: body.number
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person.findByIdAndUpdate(request.params.id, {bname, bnumber}, { new: true, runValidators: true, bname: 'query' })
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
     .catch(error => next(error))
 })
 
-const generateId = () => {
-    return Math.floor(Math.random()*10000)
-}
+//const generateId = () => {
+//    return Math.floor(Math.random()*10000)
+//}
 
 app.use(unknownEndpoint)
 app.use(errorHandler)
