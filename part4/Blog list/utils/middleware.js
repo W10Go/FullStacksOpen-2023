@@ -22,7 +22,7 @@ const tokenExtractor = (request, response, next) =>{
         }
     }
     else{
-        response.status(401).json({ error: 'invalid Authorization header' })
+        response.status(401).json({ error: 'there is not Authorization header' })
     }
     next()
 }
